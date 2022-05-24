@@ -127,9 +127,10 @@ public class ShoppingCartController {
         Integer number = cartServiceOne.getNumber();
         cartServiceOne.setNumber(number - 1);
         shoppingCartService.updateById(cartServiceOne);
-        // 有bug，当number = 0时数据库中并未删除该信息
-        if (number == 0) {
-            shoppingCartService.remove(queryWrapper);
+        // 当number减为0时，说明购物车已不再有该菜品/套餐，直接删除
+        if (cartServiceOne.getNumber() == 0) {
+            Long id = cartServiceOne.getId();
+            shoppingCartService.removeById(id);
         }
 
         return R.success(cartServiceOne);
