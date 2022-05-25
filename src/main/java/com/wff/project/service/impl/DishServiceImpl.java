@@ -2,6 +2,7 @@ package com.wff.project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wff.project.common.CustomException;
 import com.wff.project.dto.DishDto;
 import com.wff.project.entity.Dish;
 import com.wff.project.entity.DishFlavor;
@@ -88,5 +89,31 @@ public class DishServiceImpl extends ServiceImpl<DishMapper, Dish> implements Di
         }).collect(Collectors.toList());
 
         dishFlavorService.saveBatch(flavors);
+    }
+
+    /**
+     * 删除菜品
+     * @param ids
+     */
+    @Override
+    public void removeWithFlavor(List<Long> ids) {
+        // 查询菜品状态，确定是否可删除
+        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(Dish::getId, ids);
+        queryWrapper.eq(Dish::getStatus, 1);
+        int count = this.count(queryWrapper);
+
+        // 如果不能删除，抛出一个业务异常
+        if (count > 0) {
+            throw new CustomException("菜品正在售卖中，不能删除!");
+        }
+
+        // 菜品可以删除，先删除dish表中的数据
+        this.removeByIds(ids);
+
+        // 删除dish_flavor表中的数据
+        LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.in(DishFlavor::getDishId, ids);
+        dishFlavorService.remove(lambdaQueryWrapper);
     }
 }

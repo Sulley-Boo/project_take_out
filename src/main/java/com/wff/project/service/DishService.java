@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.wff.project.dto.DishDto;
 import com.wff.project.entity.Dish;
 
+import java.util.List;
+
 public interface DishService extends IService<Dish> {
 
     // 新增菜品，同时插入菜品对应的口味数据，操作两张表，dish和dish_flavor
@@ -14,4 +16,7 @@ public interface DishService extends IService<Dish> {
 
     // 更新菜品表和口味表基本信息
     void updateWithFlavor(DishDto dishDto);
+
+    // 删除菜品
+    void removeWithFlavor(List<Long> ids);
 }

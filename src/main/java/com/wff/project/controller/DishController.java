@@ -2,6 +2,7 @@ package com.wff.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wff.project.common.CustomException;
 import com.wff.project.common.R;
 import com.wff.project.dto.DishDto;
 import com.wff.project.entity.Category;
@@ -15,6 +16,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -173,5 +176,57 @@ public class DishController {
             return dishDto;
         }).collect(Collectors.toList());
         return R.success(dishDtoList);
+    }
+
+    /**
+     * 删除菜品
+     *
+     * @param ids
+     * @return
+     */
+    @DeleteMapping
+    public R<String> delete(@RequestParam List<Long> ids) {
+        log.info("待删除的菜品id为{}", ids);
+        // 删除菜品，对应的口味表中的数据也需要删除
+        dishService.removeWithFlavor(ids);
+        return R.success("菜品删除成功!");
+    }
+
+    /**
+     * 停售菜品
+     *
+     * @return
+     */
+    @PostMapping("/status/0")
+    public R<String> haltSale(@RequestParam List<Long> ids) {
+        log.info("菜品id信息：{}", ids);
+        for (Long id : ids) {
+            Dish dish = dishService.getById(id);
+            if (dish.getStatus() == 0) {
+                throw new CustomException("菜品已经在停售中...");
+            }
+            dish.setStatus(0);
+            dishService.updateById(dish);
+        }
+        return R.success("菜品停售成功!");
+    }
+
+    /**
+     * 启售菜品
+     *
+     * @return
+     */
+    @PostMapping("/status/1")
+    public R<String> startSale(@RequestParam List<Long> ids) {
+        log.info("菜品id信息：{}", ids);
+        for (Long id : ids) {
+            Dish dish = dishService.getById(id);
+            if (dish.getStatus() == 1) {
+                throw new CustomException("菜品已经在启售中...");
+            }
+            dish.setStatus(1);
+            dishService.updateById(dish);
+        }
+        return R.success("菜品启售成功!");
     }
 }

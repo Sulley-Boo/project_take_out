@@ -2,6 +2,7 @@ package com.wff.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wff.project.common.CustomException;
 import com.wff.project.common.R;
 import com.wff.project.dto.SetmealDto;
 import com.wff.project.entity.Category;
@@ -116,5 +117,45 @@ public class SetmealController {
         List<Setmeal> list = setmealService.list(queryWrapper);
 
         return R.success(list);
+    }
+
+    /**
+     * 套餐停售
+     *
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/0")
+    public R<String> haltSale(@RequestParam List<Long> ids) {
+        log.info("套餐id信息：{}", ids);
+        for (Long id : ids) {
+            Setmeal setmeal = setmealService.getById(id);
+            if (setmeal.getStatus() == 0) {
+                throw new CustomException("套餐已经在停售中...");
+            }
+            setmeal.setStatus(0);
+            setmealService.updateById(setmeal);
+        }
+        return R.success("套餐停售成功!");
+    }
+
+    /**
+     * 套餐启售
+     *
+     * @param ids
+     * @return
+     */
+    @PostMapping("/status/1")
+    public R<String> startSale(@RequestParam List<Long> ids) {
+        log.info("套餐id信息：{}", ids);
+        for (Long id : ids) {
+            Setmeal setmeal = setmealService.getById(id);
+            if (setmeal.getStatus() == 1) {
+                throw new CustomException("套餐已经在启售中...");
+            }
+            setmeal.setStatus(1);
+            setmealService.updateById(setmeal);
+        }
+        return R.success("套餐启售成功!");
     }
 }
