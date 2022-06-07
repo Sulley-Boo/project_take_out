@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wff.project.common.BaseContext;
+import com.wff.project.common.CustomException;
 import com.wff.project.common.R;
 import com.wff.project.entity.AddressBook;
 import com.wff.project.service.AddressBookService;
@@ -55,6 +56,18 @@ public class AddressBookController {
     }
 
     /**
+     * 修改地址信息
+     *
+     * @param addressBook
+     * @return
+     */
+    @PutMapping
+    public R<String> update(@RequestBody AddressBook addressBook) {
+        addressBookService.updateById(addressBook);
+        return R.success("地址修改成功!");
+    }
+
+    /**
      * 根据id查询地址
      */
     @GetMapping("/{id}")
@@ -102,4 +115,16 @@ public class AddressBookController {
         //SQL:select * from address_book where user_id = ? order by update_time desc
         return R.success(addressBookService.list(queryWrapper));
     }
+
+    @DeleteMapping
+    public R<String> delete(Long ids) {
+        AddressBook addressBook = addressBookService.getById(ids);
+        Integer isDefault = addressBook.getIsDefault();
+        if (isDefault == 1) {
+            throw new CustomException("当前地址为默认地址，不能删除!");
+        }
+        addressBookService.removeById(ids);
+        return R.success("地址删除成功!");
+    }
+
 }
